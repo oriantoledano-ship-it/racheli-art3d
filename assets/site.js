@@ -16,16 +16,109 @@
     history.replaceState(null, '', location.pathname + location.search);
   }
 
-  setTimeout(function () { document.body.classList.add('is-live'); root.setAttribute('data-ready', '1'); }, 60);
+  var motionOff = function () {
+    return root.getAttribute('data-motion') === 'off' ||
+      (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  };
 
-  /* reveals: .rv fades up, .pr prints in layer by layer */
-  var els = $$('.rv, .pr');
+  /* ---------- the printer loader: right to left, row by row from the top ---------- */
+  var printing = root.classList.contains('printing');
+  var loader = $('#loader');
+  var finished = false;
+  function finishLoader() {
+    if (finished) return;
+    finished = true;
+    root.classList.remove('printing');
+    if (loader) loader.remove();
+    try { sessionStorage.setItem('racheli-printed', '1'); } catch (e) {}
+    document.body.classList.add('is-live');
+  }
+  root.setAttribute('data-ready', '1');
+  if (printing && loader && loader.animate) {
+    var W = window.innerWidth, H = window.innerHeight;
+    var rows = W < 700 ? 8 : 10, rh = Math.ceil(H / rows), per = W < 700 ? 135 : 150;
+    var bed = $('.loader__bed', loader), rail = $('.loader__rail', loader), head = $('.loader__head', loader);
+    var frag = document.createDocumentFragment(), strips = [];
+    for (var i = 0; i < rows; i++) {
+      var r = document.createElement('div');
+      r.className = 'loader__row';
+      r.style.top = (i * rh) + 'px';
+      r.style.height = (rh + 1) + 'px';
+      frag.appendChild(r); strips.push(r);
+    }
+    loader.insertBefore(frag, rail);
+    bed.remove();
+    strips.forEach(function (r, i) {
+      // later animations win while running; with fill 'forwards' each row's head pass holds until the next row starts
+      var y = i * rh + rh / 2, o = { duration: per, delay: 120 + i * per, fill: i === 0 ? 'both' : 'forwards', easing: 'linear' };
+      r.animate([{ clipPath: 'inset(0 0 0 0)' }, { clipPath: 'inset(0 100% 0 0)' }], o);
+      head.animate([{ transform: 'translate(' + W + 'px,' + y + 'px)' }, { transform: 'translate(0px,' + y + 'px)' }], o);
+      rail.animate([{ transform: 'translateY(' + (y - 48) + 'px)' }, { transform: 'translateY(' + (y - 48) + 'px)' }], o);
+    });
+    var out = loader.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, delay: 160 + rows * per, fill: 'forwards' });
+    out.onfinish = finishLoader;
+    setTimeout(finishLoader, 160 + rows * per + 1400);
+  } else {
+    root.classList.remove('printing');
+    if (loader) loader.remove();
+    setTimeout(function () { document.body.classList.add('is-live'); }, 60);
+  }
+
+  /* ---------- raster print-in for any element: rows from the top, each printed right to left ---------- */
+  function printIn(el, opts) {
+    opts = opts || {};
+    var old = el.querySelector(':scope > .prc');
+    if (old) old.remove();
+    if (motionOff() || !el.animate) { el.classList.add('printed-done'); return null; }
+    var rows = opts.rows || 7, total = opts.ms || 950, per = total / rows;
+    var cover = document.createElement('div');
+    cover.className = 'prc' + (opts.flat ? ' prc--flat' : '');
+    if (opts.color) cover.style.setProperty('--cv', opts.color);
+    var strips = [];
+    for (var i = 0; i < rows; i++) {
+      var s = document.createElement('div');
+      s.className = 'prc__row';
+      s.style.top = (i * 100 / rows) + '%';
+      s.style.height = (100 / rows + .6) + '%';
+      cover.appendChild(s); strips.push(s);
+    }
+    var nz = document.createElement('div');
+    nz.className = 'prc__nz';
+    cover.appendChild(nz);
+    el.appendChild(cover);
+    el.classList.add('has-cover');
+    cover.run = function () {
+      var w = el.clientWidth, h = el.clientHeight;
+      var last;
+      strips.forEach(function (s, i) {
+        var y = (i + .5) * h / rows, o = { duration: per, delay: i * per, fill: 'forwards', easing: 'linear' };
+        s.animate([{ clipPath: 'inset(0 0 0 0)' }, { clipPath: 'inset(0 100% 0 0)' }], o);
+        last = nz.animate([{ transform: 'translate(' + w + 'px,' + y + 'px)' }, { transform: 'translate(0px,' + y + 'px)' }], o);
+      });
+      last.onfinish = function () { cover.remove(); el.classList.add('printed-done'); };
+    };
+    return cover;
+  }
+
+  /* reveals: .rv fades up; .pr images and products are printed in when they come into view */
+  var covers = new Map();
+  $$('.pr').forEach(function (el) {
+    var r = el.getBoundingClientRect();
+    if (printing && r.top < window.innerHeight) { el.classList.add('printed-done'); return; }   // the loader already printed it
+    var c = printIn(el, { rows: 7, ms: 950 });
+    if (c) covers.set(el, c);
+  });
+  var els = $$('.rv').concat(Array.from(covers.keys()));
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        var c = covers.get(e.target);
+        if (c) { setTimeout(c.run, printing && !finished ? 1900 : 0); return; }
+        e.target.classList.add('is-in');
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.15 });
     els.forEach(function (el) {
       if (el.classList.contains('rv')) {
         var sibs = el.parentElement ? $$('.rv', el.parentElement) : [];
@@ -34,7 +127,7 @@
       io.observe(el);
     });
   } else {
-    els.forEach(function (el) { el.classList.add('is-in'); });
+    els.forEach(function (el) { el.classList.add('is-in'); var c = covers.get(el); if (c) c.run(); });
   }
 
   /* sticky nav */
@@ -82,9 +175,8 @@
       txt.style.setProperty('--fs', Math.max(26, Math.min(w / (n * 0.48), w / 6.2)).toFixed(0) + 'px');
     };
     var printAgain = function () {
-      plaque.classList.remove('is-printing');
-      void plaque.offsetWidth;
-      plaque.classList.add('is-printing');
+      var c = printIn(txt, { rows: 5, ms: 650, flat: true, color: getComputedStyle(plaque).getPropertyValue('--p').trim() });
+      if (c) c.run();
     };
     var update = function () {
       var v = input.value.trim() || 'הכיתוב שלכם';

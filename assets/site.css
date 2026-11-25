@@ -70,18 +70,32 @@ p { margin: 0 0 1em; }
 .drawer nav { display: flex; flex-direction: column; gap: 4px; }
 .drawer nav a { font: 400 38px/1.4 var(--serif); text-decoration: none; }
 
-/* ---------- the print reveal (signature) ---------- */
+/* ---------- the printer (signature) ----------
+   Loader: a print head runs right to left, row after row from the top, and the site appears behind it.
+   Images, products and the sign preview are printed in the same raster order. */
+.loader { display: none; }
+.printing .loader { display: block; position: fixed; inset: 0; z-index: 9000; pointer-events: none; }
+.printing body { overflow: hidden; }
+.loader__bed, .loader__row { position: absolute; left: 0; right: 0; background-color: var(--paper);
+  background-image: linear-gradient(90deg, rgba(47, 42, 38, .07) 1px, transparent 1px), linear-gradient(0deg, rgba(47, 42, 38, .07) 1px, transparent 1px);
+  background-size: 44px 44px; background-attachment: fixed; }
+.loader__bed { inset: 0; }
+.loader__rail { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: linear-gradient(#4A413A, #2F2A26); box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .5); }
+.loader__head { position: absolute; top: 0; left: 0; width: 60px; height: 74px; margin: -58px 0 0 -30px; }
+.loader__car { position: absolute; top: 0; left: 0; width: 60px; height: 36px; border-radius: 8px; background: var(--ink); box-shadow: inset 0 5px 0 var(--clay), 0 10px 18px -8px rgba(0, 0, 0, .55); }
+.loader__nz { position: absolute; top: 36px; left: 21px; width: 18px; height: 16px; background: #3A332D; clip-path: polygon(0 0, 100% 0, 70% 100%, 30% 100%); }
+.loader__bead { position: absolute; top: 52px; left: 27px; width: 6px; height: 6px; border-radius: 50%; background: #F3C99A; box-shadow: 0 0 12px 4px rgba(181, 131, 90, .9); }
+
 .pr { position: relative; overflow: hidden; border-radius: 18px; background: var(--stone); }
 .pr img { width: 100%; height: 100%; object-fit: cover; }
-.pr::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .32) 0 2px, rgba(255, 255, 255, 0) 2px 7px); transition: opacity 1.2s ease .2s; }
-.pr::after { content: ""; position: absolute; z-index: 2; left: -2%; right: -2%; bottom: 0; height: 3px; background: var(--clay); box-shadow: 0 0 14px 2px rgba(181, 131, 90, .75); opacity: 0; pointer-events: none; }
-.js .pr img { clip-path: inset(100% 0 0 0); }
-.js .pr.is-in img { animation: printUp 1.6s steps(28, end) forwards; }
-.js .pr.is-in::after { animation: nozzleUp 1.6s steps(28, end) forwards; }
-.js .pr.is-in::before { animation: layersFade 2.6s ease forwards; }
-@keyframes printUp { to { clip-path: inset(0 0 0 0); } }
-@keyframes nozzleUp { 0% { bottom: 0; opacity: 1; } 96% { bottom: calc(100% - 3px); opacity: 1; } 100% { bottom: calc(100% - 3px); opacity: 0; } }
-@keyframes layersFade { 0%, 55% { opacity: .9; } 100% { opacity: 0; } }
+.js .pr:not(.has-cover):not(.printed-done) img { visibility: hidden; }
+.prc { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.prc__row { position: absolute; left: -1px; right: -1px; background-color: var(--cv, var(--stone));
+  background-image: linear-gradient(90deg, rgba(47, 42, 38, .08) 1px, transparent 1px), linear-gradient(0deg, rgba(47, 42, 38, .08) 1px, transparent 1px); background-size: 22px 22px; }
+.prc--flat .prc__row { background-image: none; }
+.prc__nz { position: absolute; top: 0; left: 0; width: 22px; height: 26px; margin: -24px 0 0 -11px; }
+.prc__nz::before { content: ""; position: absolute; inset: 0 0 8px; border-radius: 4px; background: var(--ink); box-shadow: inset 0 3px 0 var(--clay); }
+.prc__nz::after { content: ""; position: absolute; left: 8px; bottom: 0; width: 6px; height: 6px; border-radius: 50%; background: #F3C99A; box-shadow: 0 0 10px 3px rgba(181, 131, 90, .9); }
 
 .js .rv { opacity: 0; transform: translateY(24px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
 .js .rv.is-in { opacity: 1; transform: none; }
@@ -109,6 +123,7 @@ p { margin: 0 0 1em; }
 
 /* the hero copy rises in once the page is ready */
 .js .hero__copy > * { opacity: 0; transform: translateY(20px); }
+.printed .hero__copy > * { opacity: 1 !important; transform: none !important; animation: none !important; }
 .is-live .hero__copy > * { animation: rise 1s var(--ease) forwards; }
 .is-live .hero__copy > *:nth-child(2) { animation-delay: .12s; }
 .is-live .hero__copy > *:nth-child(3) { animation-delay: .24s; }
@@ -149,10 +164,6 @@ p { margin: 0 0 1em; }
 .plaque[data-c="grey"] { --p: #A29D96; --t: #858079; --hi: rgba(255, 255, 255, .45); }
 .plaque[data-c="black"] { --p: #3B3734; --t: #26231F; --hi: rgba(255, 255, 255, .18); --lo: rgba(0, 0, 0, .55); }
 .plaque__txt { position: relative; font: 400 var(--fs, 64px)/1.15 var(--serif); text-align: center; color: var(--p); text-shadow: -1px -1px 0 var(--lo), 1px 1px 0 var(--hi), 2px 2px 0 var(--hi), 0 0 1px var(--lo); word-break: break-word; }
-.plaque__nozzle { position: absolute; left: 4%; right: 4%; bottom: 8%; height: 3px; background: var(--clay); box-shadow: 0 0 14px 2px rgba(181, 131, 90, .8); opacity: 0; }
-.plaque.is-printing .plaque__txt { animation: printUp .9s steps(16, end) both; }
-.plaque.is-printing .plaque__nozzle { animation: nozzleText .9s steps(16, end) both; }
-@keyframes nozzleText { 0% { bottom: 30%; opacity: 1; } 95% { bottom: 66%; opacity: 1; } 100% { bottom: 66%; opacity: 0; } }
 .plaque__cap { text-align: center; font-size: 13.5px; color: var(--ink-mute); margin: 26px 0 0; }
 
 /* ---------- judaica ---------- */
@@ -262,9 +273,9 @@ p { margin: 0 0 1em; }
 /* ---------- motion + a11y states ---------- */
 @media (prefers-reduced-motion: reduce) {
   .js .rv, .js .hero__copy > * { opacity: 1 !important; transform: none !important; animation: none !important; }
-  .js .pr img { clip-path: none !important; animation: none !important; }
-  .pr::before, .pr::after, .plaque__nozzle { display: none; }
+  .js .pr img { visibility: visible !important; }
+  .prc, .loader { display: none !important; }
 }
 [data-motion="off"].js .rv, [data-motion="off"].js .hero__copy > * { opacity: 1 !important; transform: none !important; animation: none !important; }
-[data-motion="off"].js .pr img { clip-path: none !important; animation: none !important; }
-[data-motion="off"] .pr::before, [data-motion="off"] .pr::after, [data-motion="off"] .plaque__nozzle { display: none; }
+[data-motion="off"].js .pr img { visibility: visible !important; }
+[data-motion="off"] .prc { display: none !important; }

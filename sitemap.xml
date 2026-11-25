@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://oriantoledano-ship-it.github.io/racheli-art3d/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <priority>1.0</priority>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/hero.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/c-family.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/c-entrance.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/c-keychains.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/p-rachel.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/p-shabbat.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/p-tzedakah.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/p-blessing.jpg</image:loc></image:image>
+    <image:image><image:loc>https://oriantoledano-ship-it.github.io/racheli-art3d/assets/img/p-candles.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://oriantoledano-ship-it.github.io/racheli-art3d/accessibility.html</loc>
+    <lastmod>2026-11-25</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://oriantoledano-ship-it.github.io/racheli-art3d/privacy.html</loc>
+    <lastmod>2026-11-25</lastmod>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://oriantoledano-ship-it.github.io/racheli-art3d/terms.html</loc>
+    <lastmod>2026-11-25</lastmod>
+    <priority>0.2</priority>
+  </url>
+</urlset>

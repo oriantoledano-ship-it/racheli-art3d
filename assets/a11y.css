@@ -1,0 +1,160 @@
+/* ==========================================================================
+   רחלי - accessibility widget + accessibility state overrides.
+   Matches the site's own tokens (warm cream / espresso / crema, Frank Ruhl
+   Libre + Assistant, sharp corners - --r:0px everywhere on this site) so it
+   never reads as a bolted-on plugin. Works standalone on the legal pages too.
+   ========================================================================== */
+
+.a11y-btn,
+.a11y-panel { font-family: 'Heebo', system-ui, sans-serif; }
+
+/* ---------- Floating button (kept circular - the one universal a11y
+   convention worth breaking the site's sharp-corner rule for) ---------- */
+.a11y-btn {
+  position: fixed;
+  inset-inline-start: 18px;
+  bottom: 18px;
+  z-index: 9950;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 1.5px solid #2F2A26;
+  border-radius: 50%;
+  background: #2F2A26;
+  color: #FBF8F3;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 12px 28px -12px rgba(34, 25, 19, .55);
+  transition: transform .3s ease, background .3s ease, border-color .3s ease;
+}
+.a11y-btn:hover { transform: scale(1.06); background: #5A4C40; border-color: #5A4C40; }
+.a11y-btn:focus-visible { outline: 2px solid #5A4C40; outline-offset: 3px; }
+
+/* ---------- Panel - sharp corners, matches every card/button on the site ---------- */
+.a11y-panel {
+  position: fixed;
+  inset-inline-start: 18px;
+  bottom: 84px;
+  z-index: 9951;
+  width: 302px;
+  max-width: calc(100vw - 36px);
+  padding: 22px;
+  background: #F6F1E9;
+  border: 1px solid rgba(47, 42, 38, .16);
+  box-shadow: 0 30px 66px -30px rgba(34, 25, 19, .6);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px) scale(.97);
+  transform-origin: bottom right;
+  transition: opacity .28s ease, transform .28s ease, visibility .28s ease;
+}
+.a11y-panel.is-open { opacity: 1; visibility: visible; transform: none; }
+
+.a11y-title {
+  margin: 0 0 14px;
+  font-family: 'Bellefair', Georgia, serif;
+  font-weight: 500;
+  font-size: 20px;
+  color: #2F2A26;
+}
+.a11y-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #2F2A26;
+}
+.a11y-seg {
+  display: inline-flex;
+  padding: 3px;
+  background: #ECE3D6;
+  border: 1px solid rgba(47, 42, 38, .12);
+}
+.a11y-chip {
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5E5246;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+.a11y-chip:hover { color: #2F2A26; }
+.a11y-chip[aria-pressed="true"] { background: #2F2A26; color: #FBF8F3; }
+.a11y-chip:focus-visible { outline: 2px solid #5A4C40; outline-offset: 2px; }
+
+.a11y-reset {
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px;
+  border: 1px solid rgba(47, 42, 38, .2);
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2F2A26;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+.a11y-reset:hover { background: #2F2A26; color: #FBF8F3; }
+
+.a11y-statement {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #5E5246;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.a11y-statement:hover { color: #5A4C40; }
+
+/* ==========================================================================
+   Accessibility state overrides
+   ========================================================================== */
+
+/* Larger text - scales page blocks, never the widget itself */
+[data-text="large"] body > *:not(.a11y-btn):not(.a11y-panel):not(#loader) { zoom: 1.12; }
+
+/* High contrast - deepen the muted inks so body copy passes AA comfortably.
+   `html[...]` so these outrank the page's own :root, same specificity but
+   earlier in source order. */
+html[data-contrast="high"] {
+  --ink-soft: #2F2A26;
+  --ink-faint: #3A332D;
+  --cream-soft: #F6F1E9;
+  --line: rgba(47, 42, 38, .4);
+  --line-cream: rgba(251, 248, 243, .4);
+}
+
+/* Emphasise links */
+[data-links="on"] a:not(.a11y-statement) {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+/* Stop motion */
+[data-motion="off"] { scroll-behavior: auto !important; }
+[data-motion="off"] *,
+[data-motion="off"] *::before,
+[data-motion="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+[data-motion="off"] .rise,
+[data-motion="off"] [class*="rise"] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (max-width: 480px) {
+  .a11y-btn { width: 48px; height: 48px; inset-inline-start: 14px; bottom: 14px; }
+  .a11y-panel { inset-inline-start: 14px; bottom: 74px; }
+}

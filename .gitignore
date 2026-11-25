@@ -1,0 +1,9 @@
+.claude/
+.aider*
+CLAUDE.md
+*.log
+node_modules/
+.DS_Store
+_build/
+_logo/
+graphify-out/
